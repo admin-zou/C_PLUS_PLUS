@@ -4,7 +4,7 @@
 #include <string>
 using namespace std;
 
-/////////继承和派生 
+/////////继承和派生
 
 //继承与派生类的关系
 namespace   Relation
@@ -223,6 +223,108 @@ namespace  MULTIPLE_INHERITANCE
 		/***************************************************************************************************/
 	}
 
+}
+
+//多重虚继承
+namespace MULTIPLE_MANY
+{
+	class A
+	{
+	public:
+		virtual void funA()
+		{
+			cout << "A-fun" << endl;
+		}
+		virtual void fun_A()
+		{
+			cout << "A-fun_A" << endl;
+		}
+
+		int a;
+	};
+	class B
+	{
+	public:
+		virtual void funB()
+		{
+			cout << "B-fun" << endl;
+		}
+		virtual void fun_B()
+		{
+			cout << "B-fun_B" << endl;
+		}
+
+		int b;
+	};
+	class C
+	{
+	public:
+		virtual void funC()
+		{
+			cout << "C-fun" << endl;
+		}
+		virtual void fun_C()
+		{
+			cout << "C-fun_C" << endl;
+		}
+
+		int c;
+	};
+
+	class D :public A, public B, public C
+	{
+	public:
+		virtual void funA()
+		{
+			cout << "D-funA" << endl;
+		}
+		virtual void funB()
+		{
+			cout << "D-funB" << endl;
+		}
+		virtual void funC()
+		{
+			cout << "D-funC" << endl;
+		}
+		virtual void funD()
+		{
+			cout << "fun-D" << endl;
+		}
+
+		int d;
+	};
+
+	typedef void (*Fun)();
+	
+	void PrintVtable(int* PTable)
+	{
+		printf("虚表地址：%p\n",PTable);
+		for (int i = 0; PTable[i] != 0; ++i)
+		{
+			printf("第%d个虚函数:%p ",i,PTable[i]);
+			Fun p = (Fun)PTable[i];
+			p();
+		}
+		printf("\n");
+	}
+	
+	void test()
+	{
+		D d;
+		d.a = 1;
+		d.b = 2;
+		d.c = 3;
+		d.d = 4;
+	//虚表A
+		int* Vtable1 = (int*)*(int*)(&d);  //根据在内存中分布位置来转化
+		PrintVtable(Vtable1);
+	//虚表B
+		int* Vtable2 = (int*)*((int*)(&d) + sizeof(A) / 4 ); //根据在内存中分布位置来转化
+		PrintVtable(Vtable2);
+	//虚表C
+		int* Vtable3 = (int*)*((int*)(&d) + (sizeof(A)+sizeof(B)) / 4); //根据在内存中分布位置来转化
+		PrintVtable(Vtable3);
+	}
 }
 
 //多态
@@ -481,36 +583,39 @@ namespace VIRTUAL_RING
 		A a;
 		int *fa1 = (int *)(*(int *)&a);
 		PrintVTable(fa1);
+		
 		cout << "虚表B:" << endl;
 		B b;
 		int* fa2 = (int *)(*(int *)&b);
 		PrintVTable(fa2);
 		fa2 = (int *)*(int *)((char *)&b + sizeof(B)-sizeof(A));
 		PrintVTable(fa2);
+		
 		cout << "虚表C:" << endl;
 		C c;
 		int* fa3 = (int *)(*(int *)&c);
 		PrintVTable(fa3);
 		fa3 = (int *)*(int *)((char *)&c + sizeof(C)-sizeof(A));
 		PrintVTable(fa3);
+		
 		cout << "虚表D" << endl;
 		D d;
 		d.a = 1;
 		d.b = 2;
 		d.c = 3;
 		d.d = 4;
+	//虚表1	
 		int* fa4 = (int *)(*(int *)&d);
 		PrintVTable(fa4);
-		fa4 = (int*)*((int*)(&d)) + ((sizeof(B)-sizeof(A)) / 4 + 1);
+	//虚表2	
+		//fa4 = (int*)*((int*)(&d)) + (sizeof(B) / 4 - 1);
+		fa4 = (int*)*((int*)&d + sizeof(B) / 4 - 2);  //根据在内存中的分布来转化
 		PrintVTable(fa4);
-		fa4 = (int*)*((int*)&d) + (sizeof(D)-sizeof(A)) / 4;
+	//虚表3	
+		//fa4 = (int*)*((int*)&d) + (sizeof(D)-sizeof(A)) / 4;
+		fa4 =  (int*)*((int*)&b +(sizeof(B)+sizeof(C)) / 4 -3); //根据在内存中的分布来转化
 		PrintVTable(fa4);
 
-
-		d.a = 1;
-		d.b = 2;
-		d.c = 3;
-		d.d = 4;
 		A* p;
 		p = &a;
 		p->fun1();
@@ -528,121 +633,5 @@ namespace VIRTUAL_RING
 	}
 
 }
-
-//虚拟钻石继承test
-namespace VIRTUAL_RING_TEST
-{
-
-	class Base
-	{
-	public:
-		virtual void func1()
-		{
-			cout << "Base::func1()" << endl;
-		}
-		virtual void Basefunc2()
-		{
-			cout << "Base::func2()" << endl;
-		}
-	private:
-		int b;
-	};
-	class Base1 :public virtual Base
-	{
-	public:
-		virtual void func1()
-		{
-			cout << "Base1::func1()" << endl;
-		}
-		virtual void Base1func2()
-		{
-			cout << "Base1::func2()" << endl;
-		}
-	private:
-		int b1;
-	};
-	class Base2 :public virtual Base
-	{
-	public:
-		virtual void func1()
-		{
-			cout << "Base2::func1()" << endl;
-		}
-		virtual void Base2func2()
-		{
-			cout << "Base2::func2()" << endl;
-		}
-	private:
-		int b2;
-	};
-	typedef void(*FUNC)();
-	void PrintVTable(int *VTable)
-	{
-		cout << "虚表地址：" << VTable << endl;
-		for (int i = 0; VTable[i] != 0; i++)
-		{
-			printf("第VTable[%d]是：OX%x->", i, VTable[i]);
-			FUNC p = (FUNC)VTable[i];
-			p();
-		}
-		cout << endl;
-	}
-	class Derived : public Base1, public Base2
-	{
-	public:
-		virtual void func1()
-		{
-			cout << "Derived::func1()" << endl;
-		}
-		virtual void Derivedfunc2()
-		{
-			cout << "Derived::func2()" << endl;
-		}
-		virtual void Derivedfunc3()
-		{
-			cout << "Derived::func3()" << endl;
-		}
-	private:
-		int d1;
-	};
-
-	void test()
-	{
-		cout << sizeof(Base) << endl;
-		//Base中指向虚函数表的指针 + b
-		cout << sizeof(Base1) << endl;
-		//Base1中指向虚函数表的指针 + Base1 中指向虚基类表的指针 + b1 + Base 中指向虚函数表的指针 + b
-		cout << sizeof(Base2) << endl;
-		//Base2中指向它虚函数表的指针 + Base2 中指向虚基类表的指针 + b2 + Base 中指向它虚函数表的指针 + b
-		cout << sizeof(Derived) << endl;
-		//Base1中指向它虚函数表的指针 + Base1 中指向虚基类表的指针 + b1
-		//+ Base2中指向它虚函数表的指针 + Base2 中指向虚基类表的指针 + b2
-		//+ d1
-		//+ Base 中指向虚函数表的指针 + b
-
-		//Base的对象b :
-		Base b;
-		int *VTable = (int *)(*(int *)&b);
-		PrintVTable(VTable);    //Base的虚函数表  
-
-		//Base1的对象b1 :
-		//（1）Base1的虚函数表，即_vptr_B1的指向  
-		Base1 b1;
-		VTable = (int *)*(int *)&b1;
-		PrintVTable(VTable);
-		//（2）Base的虚函数表  
-		VTable = (int *)*(int *)((char *)&b1 + sizeof(Base1)-sizeof(Base));  //看Base1的对象的内存布局  
-		PrintVTable(VTable);
-
-		//（3） 虚基表里的内容
-		// (a).b1的地址相对于_vbptr的地址的偏移量（即看Base1里有无 _vptr_B1）;
-		// (b).Base的 _vptr_B 的地址相对于 _vbptr 的地址的偏移量;
-
-		//运行查看虚基类表里的内容：
-		cout << *((int *)(*((int *)(&b1) + 1))) << endl;
-		cout << *((int *)(*((int *)(&b1) + 1)) + 1) << endl;
-	}
-}
-
 
 #endif
