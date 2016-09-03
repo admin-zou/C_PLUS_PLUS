@@ -1,0 +1,107 @@
+#define _CRT_SECURE_NO_WARNINGS
+/*C语言模拟实现多态，以及面向对象*/
+#include <stdio.h>
+struct Shape
+{
+	void (*print)();
+	void (*area)(struct square* S);
+};
+
+struct square
+{
+	void (*print)(void);
+	float (*area)(struct square* s);
+	int  high;
+	int  wid;
+};
+
+void print_suqare()
+{
+	printf("this is square\n");
+}
+float area_square(struct square* s)
+{
+	return s->high * s->wid;
+}
+void Init_square(struct square*s, int h, int w)
+{
+	s->area = area_square;
+	s->print = print_suqare;
+	s->high = h;
+	s->wid = w;
+}
+
+struct circle
+{
+	void(*print)(void);
+	float(*area)(struct circle* c);
+	int radius;
+};
+
+void print_circle()
+{
+	printf("this is circle\n");
+}
+float area_circle(struct circle* c)
+{
+	return c->radius * 3.14;
+}
+void Init_circle(struct circle*c, int r)
+{
+	c->radius = r;
+	c->print = print_circle;
+	c->area = area_circle;
+}
+
+void Test1()
+{ //测试模拟多态
+	struct square S;
+	Init_square(&S, 3.4, 5);
+	S.print();
+	printf("area of square is: %f\n", S.area(&S));
+
+	struct circle C;
+	Init_circle(&C, 2);
+	C.print();
+	printf("area of suqare is: %f\n", C.area(&C));
+
+	struct Shape * p = (struct Shape*)(&S);
+	p->print();
+
+	(*p).print();
+	p->area(&S);
+
+	p = (struct Shape*)(&C);
+	p->print();
+	(*p).print();
+}
+
+
+/*C模拟实现面向对象*/
+struct object{
+	void(*print)();
+	int a;
+};
+void printa(struct object* oo)
+{
+	printf("%d\n", oo->a);
+};
+void InitObject(struct object *oo, int n)
+{
+	oo->print = printa;
+	oo->a = n;
+}
+void Test2()
+{
+	struct object A;
+	InitObject(&A, 2);
+	A.print(&A);
+}
+
+
+int main()
+{
+	Test2();
+	return 0;
+}
+
