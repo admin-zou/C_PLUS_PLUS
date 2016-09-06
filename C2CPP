@@ -65,14 +65,14 @@ void Test1()
 	C.print();
 	printf("area of suqare is: %f\n", C.area(&C));
 
-	struct Shape * p = (struct Shape*)(&S);
-	p->print();
+	struct Shape * p = (struct Shape*)(&S); //父类指针
+	p->print();                             //调用父类print函数
 
 	(*p).print();
 	p->area(&S);
 
-	p = (struct Shape*)(&C);
-	p->print();
+	p = (struct Shape*)(&C);  //类似父类指针指向子类
+	p->print();               //调用子类print函数
 	(*p).print();
 }
 
